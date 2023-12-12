@@ -2,7 +2,6 @@ import torchaudio
 from audiocraft.models import MusicGen
 from transformers import get_scheduler
 import torch
-import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.optim import AdamW
@@ -55,7 +54,7 @@ def count_nans(tensor):
     return num_nans
 
 
-def preprocess_audio(audio_path, model: MusicGen, duration: int = 30):
+def preprocess_audio(audio_path, model: MusicGen, duration: int = 10):
     wav, sr = torchaudio.load(audio_path)
     wav = torchaudio.functional.resample(wav, sr, model.sample_rate)
     wav = wav.mean(dim=0, keepdim=True)
@@ -149,7 +148,6 @@ def train(
         warmup_steps,
         int(epochs * len(train_dataloader) / grad_acc),
     )
-
     criterion = nn.CrossEntropyLoss()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -157,14 +155,14 @@ def train(
 
     save_step = save_step
     save_models = False if save_step is None else True
-
+    
     save_path = "models/"
 
     os.makedirs(save_path, exist_ok=True)
-
     current_step = 0
 
     for epoch in range(num_epochs):
+        print('start_training')
         for batch_idx, (audio, label) in enumerate(train_dataloader):
             optimizer.zero_grad()
 
@@ -183,7 +181,7 @@ def train(
                     codes = inner_audio
 
                 all_codes.append(codes)
-                texts.append(open(l, "r").read().strip())
+                texts.append(None)
 
             attributes, _ = model._prepare_tokens_and_attributes(texts, None)
             conditions = attributes
